@@ -1,28 +1,4 @@
 library(tidyverse)
-
-# fix for old version of Java, ref: https://community.rstudio.com/t/rstudio-crashing-with-tabulizer-need-to-install-the-legacy-java-se-6-runtime/87937/3
-Sys.setenv(JAVA_HOME="/usr/local/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home")
-library(tabulizer)
-options(java.parameters = "-Xmx16000m")
-
-breaches_tables <- extract_tables(
-  "data/source/8555-441-32-b (rotated).pdf",
-  pages = c(10, 11, 100),
-  method = "lattice",
-  output = "data.frame"
-)
-
-
-library(pdftools)
-library(tidytext)
-
-breach_pages <- pdf_text("data/source/8555-441-32-b (rotated).pdf") %>%
-  as_tibble() %>%
-  mutate(page = row_number()) %>%
-  select(page, text = value)
-
-
-
 library(docxtractr)
 
 # load PDF that's been converted by Word
