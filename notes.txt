@@ -1,0 +1,2 @@
+- DND/CSE/etc are scanned PDFs, require alternate approach
+- TBS/CSPS/PSPIB say "see annex" but there are no annexes
