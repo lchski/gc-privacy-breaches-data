@@ -4,7 +4,7 @@ library(docxtractr)
 # load PDF that's been converted by Word
 breaches_docx <- docxtractr::read_docx("data/source/8555-441-32-b (rotated).pdf edited.docx")
 
-breaches_tables_raw <- tibble(breach_table = docx_extract_all_tbls(breaches_docx)) %>%
+breach_tables_raw <- tibble(breach_table = docx_extract_all_tbls(breaches_docx)) %>%
   mutate(
     table_id = row_number(),
     table_col_n = map_dbl(breach_table, ncol),
@@ -12,7 +12,7 @@ breaches_tables_raw <- tibble(breach_table = docx_extract_all_tbls(breaches_docx
   ) %>%
   select(table_id, breach_table, everything())
 
-breaches_tables <- breaches_tables_raw %>%
+breaches_raw <- breach_tables_raw %>%
   filter(table_col_n == 11) %>% # only response tables
   select(-table_col_n, -table_row_n) %>%
   mutate(breach_table = map(
@@ -47,4 +47,19 @@ breaches_tables <- breaches_tables_raw %>%
     ! str_detect(date, fixed("(i) the date")),
     ! str_detect(date, "^Note"),
     ! str_detect(date, "^\\*")
+  ) %>%
+  group_by(organization) %>%
+  mutate(breach_id = paste0(organization, "-", row_number())) %>%
+  ungroup()
+
+breaches <- breaches_raw %>%
+  mutate(
+    number_individuals = case_when( # case-by-case issues
+      number_individuals == "Potentially 2.2 Mil" ~ "2,200,000",
+      TRUE ~ number_individuals
+    ),
+    number_individuals = str_remove_all(number_individuals, "\\(Note 2\\)"), # remove an oddity
+    number_individuals = str_remove_all(number_individuals, "[^\\d]"), # remove all non-digit values
+    number_individuals = as.integer(number_individuals)
   )
+
